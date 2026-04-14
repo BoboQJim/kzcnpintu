@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>华夏拼图 - 中国地理益智游戏</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    :root {
+      --primary: #ff6b35;
+      --primary-dark: #e55a2b;
+      --secondary: #f7c948;
+      --accent: #00d4aa;
+      --bg-dark: #0a1628;
+      --bg-medium: #132238;
+      --bg-light: #1a3050;
+      --text-primary: #ffffff;
+      --text-secondary: #94a3b8;
+      --gold: #fbbf24;
+      --success: #22c55e;
+      --danger: #ef4444;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', system-ui, sans-serif;
+      background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-medium) 100%);
+      min-height: 100vh;
+      color: var(--text-primary);
+      overflow-x: hidden;
+    }
+
+    /* 头部导航 */
+    .header {
+      background: rgba(19, 34, 56, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 12px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-stats {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 14px;
+    }
+
+    .stat-item svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .coins {
+      color: var(--gold);
+    }
+
+    .timer {
+      color: #60a5fa;
+    }
+
+    .moves {
+      color: #a78bfa;
+    }
+
+    /* 主容器 */
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .main-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* 省份选择 */
+    .province-selector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .province-nav {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .province-nav:hover {
+      background: var(--primary);
+      transform: scale(1.1);
+    }
+
+    .province-nav:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .province-card {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 12px 24px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .province-name {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .province-count {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* 难度选择 */
+    .difficulty-selector {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .difficulty-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid transparent;
+      color: var(--text-secondary);
+      padding: 12px 24px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .difficulty-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+    }
+
+    .difficulty-btn.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+    }
+
+    .difficulty-btn span {
+      display: block;
+      font-size: 11px;
+      opacity: 0.7;
+      margin-top: 2px;
+    }
+
+    /* 游戏区域 */
+    .game-area {
+      background: rgba(19, 34, 56, 0.8);
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .game-board-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: var(--bg-dark);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    /* 拼图板 */
+    .puzzle-board {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      gap: 2px;
+      padding: 2px;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .puzzle-board.drag-over {
+      background: rgba(0, 255, 136, 0.1);
+    }
+
+    /* 拼图碎片 */
+    .puzzle-piece {
+      position: relative;
+      background-size: cover;
+      background-position: center;
+      cursor: grab;
+      transition: transform 0.1s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .puzzle-piece:hover {
+      transform: scale(1.03);
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+      z-index: 10;
+    }
+
+    .puzzle-piece.dragging {
+      cursor: grabbing;
+      transform: scale(1.08);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      opacity: 0.95 !important;
+      transition: none;
+    }
+
+    .puzzle-piece.drag-over {
+      box-shadow: 0 0 0 3px var(--primary), 0 4px 12px rgba(255, 107, 53, 0.5);
+    }
+
+    .puzzle-piece.correct {
+      cursor: default;
+      box-shadow: 0 0 0 2px var(--success), 0 2px 4px rgba(34, 197, 94, 0.3);
+    }
+
+    .puzzle-piece.correct:hover {
+      transform: none;
+      box-shadow: 0 0 0 2px var(--success), 0 2px 4px rgba(34, 197, 94, 0.3);
+    }
+
+    .puzzle-piece .piece-number {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 500;
+      font-family: 'Noto Sans SC', system-ui, sans-serif;
+    }
+
+    .puzzle-piece.correct .piece-number {
+      display: none;
+    }
+
+    /* 原图预览 */
+    .preview-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .preview-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .preview-content {
+      max-width: 90vw;
+      max-height: 90vh;
+      text-align: center;
+    }
+
+    .preview-content img {
+      max-width: 100%;
+      max-height: 80vh;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .preview-info {
+      margin-top: 16px;
+      color: white;
+      font-size: 18px;
+    }
+
+    .preview-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 24px;
+      transition: all 0.2s;
+    }
+
+    .preview-close:hover {
+      background: var(--primary);
+      transform: scale(1.1);
+    }
+
+    /* 侧边栏 */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .sidebar-card {
+      background: rgba(19, 34, 56, 0.8);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 图片预览缩略图 */
+    .preview-thumbnail {
+      width: 100%;
+      aspect-ratio: 4/3;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+      background: var(--bg-dark);
+    }
+
+    .preview-thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s;
+    }
+
+    .preview-thumbnail:hover img {
+      transform: scale(1.05);
+    }
+
+    .preview-thumbnail::after {
+      content: '点击查看原图';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .preview-thumbnail:hover::after {
+      opacity: 1;
+    }
+
+    /* 景点列表 */
+    .landmark-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .landmark-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .landmark-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .landmark-item.active {
+      background: rgba(255, 107, 53, 0.2);
+      border: 1px solid var(--primary);
+    }
+
+    .landmark-thumb {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    .landmark-name {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .landmark-complete {
+      color: var(--success);
+      font-size: 12px;
+    }
+
+    /* 统计面板 */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 16px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* 控制按钮 */
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .control-btn {
+      flex: 1;
+      padding: 14px 20px;
+      border-radius: 12px;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .control-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* 进度条 */
+    .progress-container {
+      margin-top: 16px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--success));
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+
+    /* 加载状态 */
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 22, 40, 0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 107, 53, 0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      margin-top: 16px;
+      color: var(--text-secondary);
+    }
+
+    /* 胜利弹窗 */
+    .win-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .win-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .win-content {
+      background: linear-gradient(135deg, var(--bg-medium), var(--bg-light));
+      padding: 40px;
+      border-radius: 24px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      border: 2px solid var(--primary);
+      box-shadow: 0 20px 60px rgba(255, 107, 53, 0.3);
+    }
+
+    .win-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .win-subtitle {
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .win-stats {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-bottom: 24px;
+    }
+
+    .win-stat {
+      text-align: center;
+    }
+
+    .win-stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--secondary);
+    }
+
+    .win-stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .win-reward {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--gold);
+      font-size: 18px;
+      margin-bottom: 24px;
+    }
+
+    .win-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .win-buttons .control-btn {
+      padding: 12px 24px;
+    }
+
+    /* 拖拽提示 */
+    .drag-hint {
+      position: fixed;
+      pointer-events: none;
+      z-index: 3000;
+      display: none;
+    }
+
+    .drag-hint.show {
+      display: block;
+    }
+
+    .drag-hint-piece {
+      width: 80px;
+      height: 60px;
+      background-size: cover;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border: 3px solid var(--primary);
+    }
+
+    /* 正确放置动画 */
+    @keyframes correctPlace {
+      0% { transform: scale(1.1); }
+      50% { transform: scale(0.95); }
+      100% { transform: scale(1); }
+    }
+
+    .puzzle-piece.just-placed {
+      animation: correctPlace 0.3s ease;
+    }
+
+    /* 完成标记 */
+    .complete-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: var(--success);
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      box-shadow: 0 2px 8px rgba(34, 197, 94, 0.5);
+    }
+
+    /* 空状态 */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    .empty-title {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .empty-desc {
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    /* 响应式 */
+    @media (max-width: 600px) {
+      .header-content {
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .header-stats {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .difficulty-selector {
+        flex-wrap: wrap;
+      }
+
+      .difficulty-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+
+      .controls {
+        flex-direction: column;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 头部导航 -->
+  <header class="header">
+    <div class="header-content">
+      <h1 class="logo">华夏拼图</h1>
+      <div class="header-stats">
+        <div class="stat-item coins">
+          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="10" fill="#000">币</text></svg>
+          <span id="coins-display">100</span>
+        </div>
+        <div class="stat-item timer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+          <span id="timer-display">00:00</span>
+        </div>
+        <div class="stat-item moves">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17,1 21,5 17,9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7,23 3,19 7,15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span id="moves-display">0</span>步
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主容器 -->
+  <main class="main-container">
+    <!-- 左侧游戏区 -->
+    <div class="game-section">
+      <!-- 省份选择 -->
+      <div class="province-selector">
+        <button class="province-nav" id="prev-province">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><polyline points="15,18 9,12 15,6"/></svg>
+        </button>
+        <div class="province-card">
+          <div class="province-name" id="province-name">北京</div>
+          <div class="province-count"><span id="province-index">1</span> / <span id="province-total">34</span></div>
+        </div>
+        <button class="province-nav" id="next-province">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><polyline points="9,18 15,12 9,6"/></svg>
+        </button>
+      </div>
+
+      <!-- 难度选择 -->
+      <div class="difficulty-selector">
+        <button class="difficulty-btn active" data-difficulty="easy">
+          简单
+          <span>4×6</span>
+        </button>
+        <button class="difficulty-btn" data-difficulty="medium">
+          中等
+          <span>6×8</span>
+        </button>
+        <button class="difficulty-btn" data-difficulty="hard">
+          困难
+          <span>10×15</span>
+        </button>
+      </div>
+
+      <!-- 游戏区域 -->
+      <div class="game-area">
+        <div class="game-board-container" id="game-board-container">
+          <div class="loading-overlay" id="loading">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">加载拼图...</p>
+          </div>
+          <div class="puzzle-board" id="puzzle-board"></div>
+        </div>
+
+        <!-- 控制按钮 -->
+        <div class="controls">
+          <button class="control-btn btn-secondary" id="btn-preview">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            查看原图
+          </button>
+          <button class="control-btn btn-primary" id="btn-start">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg>
+            开始游戏
+          </button>
+        </div>
+
+        <!-- 进度条 -->
+        <div class="progress-container">
+          <div class="progress-label">
+            <span>完成进度</span>
+            <span id="progress-percent">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧边栏 -->
+    <div class="sidebar">
+      <!-- 图片预览 -->
+      <div class="sidebar-card">
+        <h3 class="sidebar-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+          原图预览
+        </h3>
+        <div class="preview-thumbnail" id="preview-thumbnail">
+          <img id="thumbnail-img" src="" alt="预览">
+        </div>
+      </div>
+
+      <!-- 景点列表 -->
+      <div class="sidebar-card">
+        <h3 class="sidebar-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          景点选择
+        </h3>
+        <div class="landmark-list" id="landmark-list"></div>
+      </div>
+
+      <!-- 统计面板 -->
+      <div class="sidebar-card">
+        <h3 class="sidebar-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          游戏统计
+        </h3>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-completed" style="color: var(--success)">0</div>
+            <div class="stat-label">已完成</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-total" style="color: var(--secondary)">0</div>
+            <div class="stat-label">总游戏</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-best" style="color: #60a5fa">--:--</div>
+            <div class="stat-label">最佳时间</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-accuracy" style="color: #a78bfa">0%</div>
+            <div class="stat-label">准确率</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 原图预览弹窗 -->
+  <div class="preview-overlay" id="preview-overlay">
+    <button class="preview-close" id="preview-close">&times;</button>
+    <div class="preview-content">
+      <img id="preview-img" src="" alt="原图">
+      <p class="preview-info" id="preview-info"></p>
+    </div>
+  </div>
+
+  <!-- 胜利弹窗 -->
+  <div class="win-overlay" id="win-overlay">
+    <div class="win-content">
+      <h2 class="win-title">恭喜通关!</h2>
+      <p class="win-subtitle" id="win-subtitle">你已完成拼图!</p>
+      <div class="win-stats">
+        <div class="win-stat">
+          <div class="win-stat-value" id="win-moves">0</div>
+          <div class="win-stat-label">步数</div>
+        </div>
+        <div class="win-stat">
+          <div class="win-stat-value" id="win-time">00:00</div>
+          <div class="win-stat-label">用时</div>
+        </div>
+      </div>
+      <div class="win-reward">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><circle cx="12" cy="12" r="10"/></svg>
+        +<span id="win-coins">10</span> 金币
+      </div>
+      <div class="win-buttons">
+        <button class="control-btn btn-secondary" id="btn-next">
+          下一关
+        </button>
+        <button class="control-btn btn-primary" id="btn-replay">
+          再玩一次
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 拖拽提示元素 -->
+  <div class="drag-hint" id="drag-hint">
+    <div class="drag-hint-piece" id="drag-hint-piece"></div>
+  </div>
+
+  <script>
+    // 省份和景点数据
+    const PROVINCES = [
+      { name: '北京', images: ['北京-天坛.jpg', '北京-故宫.jpg', '北京-长城.jpg'] },
+      { name: '上海', images: ['上海-东方明珠.jpg', '上海-外滩.jpg', '上海-豫园.jpg'] },
+      { name: '江苏', images: ['江苏-苏州园林.jpg', '江苏-中山陵.jpg', '江苏-周庄古镇.jpg'] },
+      { name: '浙江', images: ['浙江-西湖.jpg', '浙江-乌镇.jpg', '浙江-千岛湖.jpg'] },
+      { name: '安徽', images: ['安徽-黄山.jpg', '安徽-宏村.jpg', '安徽-九华山.jpg'] },
+      { name: '福建', images: ['福建-武夷山.jpg', '福建-鼓浪屿.jpg', '福建-福建土楼.jpg'] },
+      { name: '江西', images: ['江西-庐山.jpg', '江西-滕王阁.jpg', '江西-婺源.jpg'] },
+      { name: '山东', images: ['山东-泰山.jpg', '山东-趵突泉.jpg', '山东-崂山.jpg'] },
+      { name: '广东', images: ['广东-广州塔.jpg', '广东-丹霞山.jpg', '广东-开平碉楼.jpg'] },
+      { name: '广西', images: ['广西-桂林山水.jpg', '广西-北海银滩.jpg', '广西-德天瀑布.jpg'] },
+      { name: '海南', images: ['海南-天涯海角.jpg', '海南-亚龙湾.jpg', '海南-南山寺.jpg'] },
+      { name: '四川', images: ['四川-九寨沟.jpg', '四川-乐山大佛.jpg', '四川-都江堰.jpg'] },
+      { name: '贵州', images: ['贵州-黄果树瀑布.jpg', '贵州-西江千户苗寨.jpg', '贵州-梵净山.jpg'] },
+      { name: '云南', images: ['云南-丽江古城.jpg', '云南-石林.jpg', '云南-大理洱海.jpg'] },
+      { name: '西藏', images: ['西藏-布达拉宫.jpg', '西藏-纳木错.jpg', '西藏-大昭寺.jpg'] },
+      { name: '陕西', images: ['陕西-秦始皇兵马俑.jpg', '陕西-华山.jpg', '陕西-大雁塔.jpg'] },
+      { name: '甘肃', images: ['甘肃-莫高窟.jpg', '甘肃-嘉峪关.jpg', '甘肃-鸣沙山月牙泉.jpg'] },
+      { name: '青海', images: ['青海-青海湖.jpg', '青海-塔尔寺.jpg', '青海-茶卡盐湖.jpg'] },
+      { name: '宁夏', images: ['宁夏-沙坡头.jpg', '宁夏-西夏王陵.jpg', '宁夏-镇北铺影视城.jpg'] },
+      { name: '新疆', images: ['新疆-天山天池.jpg', '新疆-喀纳斯.jpg', '新疆-火焰山.jpg'] },
+      { name: '天津', images: ['天津-天津之眼.jpg', '天津-五大道.jpg', '天津-瓷房子.jpg'] },
+      { name: '河北', images: ['河北-承德避暑山庄.jpg', '河北-山海关.jpg', '河北-赵州桥.jpg'] },
+      { name: '山西', images: ['山西-平遥古城.jpg', '山西-云冈石窟.jpg', '山西-悬空寺.jpg'] },
+      { name: '内蒙古', images: ['内蒙古-呼伦贝尔草原.jpg', '内蒙古-响沙湾.jpg', '内蒙古-成吉思汗陵.jpg'] },
+      { name: '辽宁', images: ['辽宁-大连星海广场.jpg', '辽宁-千山.jpg', '辽宁-沈阳故宫.jpg'] },
+      { name: '吉林', images: ['吉林-长白山天池.jpg', '吉林-雾凇岛.jpg', '吉林-伪满皇宫.jpg'] },
+      { name: '黑龙江', images: ['黑龙江-冰雪大世界.jpg', '黑龙江-中央大街.jpg', '黑龙江-五大连池.jpg'] },
+      { name: '湖北', images: ['湖北-黄鹤楼.jpg', '湖北-武当山.jpg', '湖北-三峡大坝.jpg'] },
+      { name: '湖南', images: ['湖南-张家界.jpg', '湖南-凤凰古城.jpg', '湖南-岳阳楼.jpg'] },
+      { name: '重庆', images: ['重庆-洪崖洞.jpg', '重庆-解放碑.jpg', '重庆-长江三峡.jpg'] },
+      { name: '澳门', images: ['澳门-大三巴牌坊.jpg', '澳门-妈阁庙.jpg', '澳门-澳门塔.jpg'] },
+      { name: '香港', images: ['香港-维多利亚港.jpg', '香港-太平山顶.jpg', '香港-迪士尼乐园.jpg'] },
+      { name: '台湾', images: ['台湾-日月潭.jpg', '台湾-台北101.jpg', '台湾-阿里山.jpg'] }
+    ];
+
+    // 难度配置
+    const DIFFICULTIES = {
+      easy: { rows: 4, cols: 6, name: '简单' },
+      medium: { rows: 6, cols: 8, name: '中等' },
+      hard: { rows: 10, cols: 15, name: '困难' }
+    };
+
+    // 游戏状态
+    let gameState = {
+      provinceIndex: 0,
+      landmarkIndex: 0,
+      difficulty: 'easy',
+      isPlaying: false,
+      moves: 0,
+      startTime: null,
+      timerInterval: null,
+      pieces: [],
+      placedPieces: new Set(),
+      imageUrl: '',
+      imageLoaded: false
+    };
+
+    // 统计数据
+    let stats = {
+      coins: 100,
+      completed: 0,
+      totalGames: 0,
+      bestTimes: {}
+    };
+
+    // DOM 元素
+    const puzzleBoard = document.getElementById('puzzle-board');
+    const loadingOverlay = document.getElementById('loading');
+    const previewOverlay = document.getElementById('preview-overlay');
+    const winOverlay = document.getElementById('win-overlay');
+    const dragHint = document.getElementById('drag-hint');
+    const dragHintPiece = document.getElementById('drag-hint-piece');
+
+    // 初始化
+    function init() {
+      loadStats();
+      setupEventListeners();
+      updateProvinceDisplay();
+      updateLandmarkList();
+      updateStatsDisplay();
+      loadCurrentImage();
+    }
+
+    // 加载统计
+    function loadStats() {
+      const saved = localStorage.getItem('chinaPuzzleStats');
+      if (saved) {
+        stats = JSON.parse(saved);
+      }
+    }
+
+    // 保存统计
+    function saveStats() {
+      localStorage.setItem('chinaPuzzleStats', JSON.stringify(stats));
+    }
+
+    // 设置事件监听
+    function setupEventListeners() {
+      // 难度选择
+      document.querySelectorAll('.difficulty-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          gameState.difficulty = btn.dataset.difficulty;
+          if (gameState.isPlaying) {
+            createPuzzle();
+          }
+        });
+      });
+
+      // 省份导航
+      document.getElementById('prev-province').addEventListener('click', () => changeProvince(-1));
+      document.getElementById('next-province').addEventListener('click', () => changeProvince(1));
+
+      // 控制按钮
+      document.getElementById('btn-start').addEventListener('click', startGame);
+      document.getElementById('btn-preview').addEventListener('click', showPreview);
+
+      // 预览弹窗
+      document.getElementById('preview-close').addEventListener('click', hidePreview);
+      previewOverlay.addEventListener('click', (e) => {
+        if (e.target === previewOverlay) hidePreview();
+      });
+
+      // 缩略图点击
+      document.getElementById('preview-thumbnail').addEventListener('click', showPreview);
+
+      // 胜利弹窗
+      document.getElementById('btn-next').addEventListener('click', () => {
+        hideWin();
+        changeProvince(1);
+        startGame();
+      });
+      document.getElementById('btn-replay').addEventListener('click', () => {
+        hideWin();
+        startGame();
+      });
+
+      // 键盘事件
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          hidePreview();
+          hideWin();
+        }
+      });
+
+      // 拖拽事件
+      document.addEventListener('mousemove', onDrag);
+      document.addEventListener('mouseup', onDragEnd);
+      document.addEventListener('touchmove', onDrag, { passive: false });
+      document.addEventListener('touchend', onDragEnd);
+    }
+
+    // 改变省份
+    function changeProvince(direction) {
+      const total = PROVINCES.length;
+      gameState.provinceIndex = (gameState.provinceIndex + direction + total) % total;
+      gameState.landmarkIndex = 0;
+      updateProvinceDisplay();
+      updateLandmarkList();
+      loadCurrentImage();
+    }
+
+    // 更新省份显示
+    function updateProvinceDisplay() {
+      const province = PROVINCES[gameState.provinceIndex];
+      document.getElementById('province-name').textContent = province.name;
+      document.getElementById('province-index').textContent = gameState.provinceIndex + 1;
+      document.getElementById('province-total').textContent = PROVINCES.length;
+    }
+
+    // 更新景点列表
+    function updateLandmarkList() {
+      const province = PROVINCES[gameState.provinceIndex];
+      const container = document.getElementById('landmark-list');
+      container.innerHTML = '';
+
+      province.images.forEach((img, idx) => {
+        const name = img.replace('.jpg', '').split('-')[1] || img.split('-')[0];
+        const item = document.createElement('div');
+        item.className = `landmark-item${idx === gameState.landmarkIndex ? ' active' : ''}`;
+        item.innerHTML = `
+          <img class="landmark-thumb" src="/images/${img}" alt="${name}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231a3050%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2212%22>${name}</text></svg>'">
+          <span class="landmark-name">${name}</span>
+          ${isLandmarkCompleted(gameState.provinceIndex, idx) ? '<span class="landmark-complete">✓</span>' : ''}
+        `;
+        item.addEventListener('click', () => selectLandmark(idx));
+        container.appendChild(item);
+      });
+    }
+
+    // 选择景点
+    function selectLandmark(index) {
+      gameState.landmarkIndex = index;
+      updateLandmarkList();
+      loadCurrentImage();
+    }
+
+    // 检查景点是否已完成
+    function isLandmarkCompleted(provinceIdx, landmarkIdx) {
+      const key = `${provinceIdx}_${landmarkIdx}`;
+      return stats.bestTimes[key] !== undefined;
+    }
+
+    // 加载当前图片
+    function loadCurrentImage() {
+      const province = PROVINCES[gameState.provinceIndex];
+      const imgName = province.images[gameState.landmarkIndex];
+      gameState.imageUrl = `/images/${imgName}`;
+      gameState.imageLoaded = false;
+
+      // 更新缩略图
+      const thumbImg = document.getElementById('thumbnail-img');
+      thumbImg.src = gameState.imageUrl;
+      thumbImg.alt = imgName.replace('.jpg', '');
+
+      // 预加载图片
+      const img = new Image();
+      img.onload = () => {
+        gameState.imageLoaded = true;
+      };
+      img.src = gameState.imageUrl;
+
+      // 重置拼图板
+      resetPuzzleBoard();
+    }
+
+    // 重置拼图板
+    function resetPuzzleBoard() {
+      gameState.isPlaying = false;
+      gameState.pieces = [];
+      gameState.placedPieces = new Set();
+      gameState.moves = 0;
+      gameState.startTime = null;
+      
+      if (gameState.timerInterval) {
+        clearInterval(gameState.timerInterval);
+        gameState.timerInterval = null;
+      }
+
+      updateMovesDisplay();
+      updateTimerDisplay();
+      updateProgress();
+
+      const config = DIFFICULTIES[gameState.difficulty];
+      puzzleBoard.style.gridTemplateColumns = `repeat(${config.cols}, 1fr)`;
+      puzzleBoard.style.gridTemplateRows = `repeat(${config.rows}, 1fr)`;
+      
+      // 显示完成状态的占位符
+      puzzleBoard.innerHTML = '';
+      for (let i = 0; i < config.rows * config.cols; i++) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'puzzle-piece';
+        placeholder.style.background = 'rgba(255, 255, 255, 0.05)';
+        placeholder.dataset.index = i;
+        puzzleBoard.appendChild(placeholder);
+      }
+
+      document.getElementById('btn-start').innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg>
+        开始游戏
+      `;
+    }
+
+    // 开始游戏
+    function startGame() {
+      if (!gameState.imageLoaded) {
+        alert('图片加载中，请稍候...');
+        return;
+      }
+
+      gameState.isPlaying = true;
+      gameState.moves = 0;
+      gameState.placedPieces = new Set();
+      gameState.startTime = Date.now();
+
+      // 开始计时
+      gameState.timerInterval = setInterval(updateTimerDisplay, 1000);
+
+      // 生成拼图碎片
+      createPuzzle();
+
+      document.getElementById('btn-start').innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        重新开始
+      `;
+    }
+
+    // 创建拼图
+    function createPuzzle() {
+      const config = DIFFICULTIES[gameState.difficulty];
+      const totalPieces = config.rows * config.cols;
+
+      // 生成碎片数组
+      gameState.pieces = Array.from({ length: totalPieces }, (_, i) => i);
+
+      // 打乱碎片
+      shuffleArray(gameState.pieces);
+
+      // 渲染拼图板
+      puzzleBoard.innerHTML = '';
+
+      gameState.pieces.forEach((pieceIndex, displayIndex) => {
+        const piece = document.createElement('div');
+        piece.className = 'puzzle-piece';
+        piece.dataset.pieceIndex = pieceIndex;
+        piece.dataset.displayIndex = displayIndex;
+
+        // 计算碎片在原图中的位置
+        const originalCol = pieceIndex % config.cols;
+        const originalRow = Math.floor(pieceIndex / config.cols);
+        const pieceWidthPercent = 100 / config.cols;
+        const pieceHeightPercent = 100 / config.rows;
+
+        piece.style.backgroundImage = `url(${gameState.imageUrl})`;
+        piece.style.backgroundSize = `${config.cols * 100}% ${config.rows * 100}%`;
+        piece.style.backgroundPosition = `${originalCol * pieceWidthPercent}% ${originalRow * pieceHeightPercent}%`;
+
+        // 显示碎片编号
+        const number = document.createElement('span');
+        number.className = 'piece-number';
+        number.textContent = pieceIndex + 1;
+        piece.appendChild(number);
+
+        // 拖拽事件
+        piece.addEventListener('mousedown', onDragStart);
+        piece.addEventListener('touchstart', onDragStart, { passive: false });
+
+        puzzleBoard.appendChild(piece);
+      });
+
+      updateProgress();
+    }
+
+    // 洗牌算法（确保可以完成）
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+
+      // 检查是否有解，如果没有则交换两个相邻元素
+      if (!isSolvable(array)) {
+        const lastIndex = array.length - 1;
+        [array[lastIndex], array[lastIndex - 1]] = [array[lastIndex - 1], array[lastIndex]];
+      }
+    }
+
+    // 检查拼图是否有解
+    function isSolvable(pieces) {
+      let inversions = 0;
+      for (let i = 0; i < pieces.length; i++) {
+        for (let j = i + 1; j < pieces.length; j++) {
+          if (pieces[i] > pieces[j]) {
+            inversions++;
+          }
+        }
+      }
+      return inversions % 2 === 0;
+    }
+
+    // 拖拽开始
+    let draggedPiece = null;
+    let dragOffset = { x: 0, y: 0 };
+
+    function onDragStart(e) {
+      if (!gameState.isPlaying) return;
+
+      const piece = e.currentTarget;
+      if (piece.classList.contains('correct')) return;
+
+      e.preventDefault();
+
+      draggedPiece = piece;
+      piece.classList.add('dragging');
+
+      const rect = piece.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      dragOffset.x = clientX - rect.left;
+      dragOffset.y = clientY - rect.top;
+
+      // 设置拖拽提示
+      dragHintPiece.style.backgroundImage = piece.style.backgroundImage;
+      dragHintPiece.style.backgroundSize = piece.style.backgroundSize;
+      dragHintPiece.style.backgroundPosition = piece.style.backgroundPosition;
+      dragHint.classList.add('show');
+      dragHint.style.left = `${clientX - 40}px`;
+      dragHint.style.top = `${clientY - 30}px`;
+
+      piece.style.opacity = '0.3';
+    }
+
+    // 拖拽中
+    function onDrag(e) {
+      if (!draggedPiece) return;
+
+      e.preventDefault();
+
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      dragHint.style.left = `${clientX - 40}px`;
+      dragHint.style.top = `${clientY - 30}px`;
+
+      // 高亮悬停位置的碎片
+      const pieces = puzzleBoard.querySelectorAll('.puzzle-piece:not(.dragging)');
+      pieces.forEach(p => p.classList.remove('drag-over'));
+
+      const elementsUnder = document.elementsFromPoint(clientX, clientY);
+      const targetPiece = elementsUnder.find(el => el.classList.contains('puzzle-piece') && !el.classList.contains('dragging'));
+
+      if (targetPiece) {
+        targetPiece.classList.add('drag-over');
+      }
+    }
+
+    // 拖拽结束
+    function onDragEnd(e) {
+      if (!draggedPiece) return;
+
+      const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+      const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+
+      // 隐藏拖拽提示
+      dragHint.classList.remove('show');
+
+      // 移除高亮
+      puzzleBoard.querySelectorAll('.puzzle-piece').forEach(p => p.classList.remove('drag-over'));
+
+      // 查找目标位置
+      const elementsUnder = document.elementsFromPoint(clientX, clientY);
+      const targetPiece = elementsUnder.find(el => el.classList.contains('puzzle-piece') && !el.classList.contains('dragging'));
+
+      if (targetPiece) {
+        swapPieces(draggedPiece, targetPiece);
+      }
+
+      // 恢复原状
+      draggedPiece.style.opacity = '1';
+      draggedPiece.classList.remove('dragging');
+      draggedPiece = null;
+    }
+
+    // 交换碎片
+    function swapPieces(piece1, piece2) {
+      const idx1 = parseInt(piece1.dataset.displayIndex);
+      const idx2 = parseInt(piece2.dataset.displayIndex);
+
+      // 交换显示位置
+      [piece1.dataset.displayIndex, piece2.dataset.displayIndex] = [idx2.toString(), idx1.toString()];
+
+      // 更新碎片数组
+      const pieceIndex1 = parseInt(piece1.dataset.pieceIndex);
+      const pieceIndex2 = parseInt(piece2.dataset.pieceIndex);
+
+      // 在 DOM 中交换位置
+      const parent = piece1.parentNode;
+      const next1 = piece1.nextSibling;
+      const next2 = piece2.nextSibling;
+
+      if (next1 === piece2) {
+        parent.insertBefore(piece2, piece1);
+      } else if (next2 === piece1) {
+        parent.insertBefore(piece1, piece2);
+      } else {
+        parent.insertBefore(piece1, next2);
+        parent.insertBefore(piece2, next1);
+      }
+
+      // 增加步数
+      gameState.moves++;
+      updateMovesDisplay();
+
+      // 检查是否正确放置
+      checkPlacement(piece1);
+      checkPlacement(piece2);
+
+      // 检查是否完成
+      checkWin();
+    }
+
+    // 检查碎片是否放置正确
+    function checkPlacement(piece) {
+      const displayIdx = parseInt(piece.dataset.displayIndex);
+      const pieceIdx = parseInt(piece.dataset.pieceIndex);
+
+      const config = DIFFICULTIES[gameState.difficulty];
+      if (displayIdx === pieceIdx) {
+        piece.classList.add('correct');
+        gameState.placedPieces.add(pieceIdx);
+      } else {
+        piece.classList.remove('correct');
+        gameState.placedPieces.delete(pieceIdx);
+      }
+
+      updateProgress();
+    }
+
+    // 更新进度
+    function updateProgress() {
+      const config = DIFFICULTIES[gameState.difficulty];
+      const total = config.rows * config.cols;
+      const placed = gameState.placedPieces.size;
+      const percent = Math.round((placed / total) * 100);
+
+      document.getElementById('progress-percent').textContent = `${percent}%`;
+      document.getElementById('progress-fill').style.width = `${percent}%`;
+    }
+
+    // 检查是否获胜
+    function checkWin() {
+      const config = DIFFICULTIES[gameState.difficulty];
+      const total = config.rows * config.cols;
+
+      if (gameState.placedPieces.size !== total) return;
+
+      // 获取所有碎片并检查顺序
+      const pieces = puzzleBoard.querySelectorAll('.puzzle-piece');
+      let isCorrect = true;
+
+      pieces.forEach((piece, idx) => {
+        if (parseInt(piece.dataset.pieceIndex) !== idx) {
+          isCorrect = false;
+        }
+      });
+
+      if (isCorrect) {
+        gameWin();
+      }
+    }
+
+    // 游戏获胜
+    function gameWin() {
+      clearInterval(gameState.timerInterval);
+
+      const time = Math.floor((Date.now() - gameState.startTime) / 1000);
+      const coins = Math.max(5, 20 - Math.floor(time / 30));
+
+      // 更新统计
+      stats.completed++;
+      stats.totalGames++;
+      stats.coins += coins;
+
+      const key = `${gameState.provinceIndex}_${gameState.landmarkIndex}`;
+      if (!stats.bestTimes[key] || time < stats.bestTimes[key]) {
+        stats.bestTimes[key] = time;
+      }
+
+      saveStats();
+      updateStatsDisplay();
+
+      // 显示胜利弹窗
+      document.getElementById('win-subtitle').textContent =
+        `你已完成 ${PROVINCES[gameState.provinceIndex].name} 的拼图!`;
+      document.getElementById('win-moves').textContent = gameState.moves;
+      document.getElementById('win-time').textContent = formatTime(time);
+      document.getElementById('win-coins').textContent = coins;
+
+      winOverlay.classList.add('show');
+
+      // 更新景点列表
+      updateLandmarkList();
+    }
+
+    // 隐藏胜利弹窗
+    function hideWin() {
+      winOverlay.classList.remove('show');
+    }
+
+    // 显示预览
+    function showPreview() {
+      const img = document.getElementById('preview-img');
+      const info = document.getElementById('preview-info');
+      const province = PROVINCES[gameState.provinceIndex];
+      const imgName = province.images[gameState.landmarkIndex];
+      const name = imgName.replace('.jpg', '').split('-')[1] || imgName.split('-')[0];
+
+      img.src = gameState.imageUrl;
+      info.textContent = `${province.name} - ${name}`;
+      previewOverlay.classList.add('show');
+    }
+
+    // 隐藏预览
+    function hidePreview() {
+      previewOverlay.classList.remove('show');
+    }
+
+    // 更新时间显示
+    function updateTimerDisplay() {
+      if (!gameState.startTime) {
+        document.getElementById('timer-display').textContent = '00:00';
+        return;
+      }
+      const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+      document.getElementById('timer-display').textContent = formatTime(elapsed);
+    }
+
+    // 更新步数显示
+    function updateMovesDisplay() {
+      document.getElementById('moves-display').textContent = gameState.moves;
+    }
+
+    // 格式化时间
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // 更新统计显示
+    function updateStatsDisplay() {
+      document.getElementById('coins-display').textContent = stats.coins;
+      document.getElementById('stat-completed').textContent = stats.completed;
+      document.getElementById('stat-total').textContent = stats.totalGames;
+
+      const bestTime = Math.min(...Object.values(stats.bestTimes), Infinity);
+      document.getElementById('stat-best').textContent =
+        bestTime === Infinity ? '--:--' : formatTime(bestTime);
+
+      const accuracy = stats.totalGames > 0
+        ? Math.round((stats.completed / stats.totalGames) * 100)
+        : 0;
+      document.getElementById('stat-accuracy').textContent = `${accuracy}%`;
+    }
+
+    // 初始化游戏
+    init();
+  </script>
+</body>
+</html>
